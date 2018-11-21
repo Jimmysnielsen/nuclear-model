@@ -1,0 +1,164 @@
+#lang racket/base
+
+#|
+this file defines the structure used for storing information about the elements
+
+An element is defined by its number in the periodic table which is determined by the number (P) of protons in the nucleus.
+We shall use the elemental number P as the identifier for the currently 118 known elements.
+Examples: element number 1 is Hydrogen, element number 26 i Iron.
+Some elements have more than one allotrope, meaning that they have differing characteristics based on their binding/crystalline structure. Think graphite vs diamond!
+The data for certain elements will depend on where the elements originate from (based on isotopic distribution)
+|#
+
+(struct element (symbol name atomic-wt) #:transparent)
+;; hashed table of elements.
+;; Key = elemental number
+;; atomic weights are Karlsruher Nuklidkarte 2015, based on IUPAC data
+;; !!! the dw is the uncertainty on the atimic weight according to current measurements
+(define *elm*
+  (hash 1  (element 'H  'hydrogen       1.00784 )  ; lower bound on [1.00784;1.00811]
+        2  (element 'He 'helium         4.002602)  ; dw=2
+        3  (element 'Li 'lithium        6.938)     ; lower bound on [6.938;6.997]
+        4  (element 'Be 'beryllium      9.0121831) ; dw=5
+        5  (element 'B  'boron         10.806)     ; lower bound on [10.806;10.821]
+        6  (element 'C  'carbon        12.0096)    ; lower bound on [12.0096;12.0116]
+        7  (element 'N  'nitrogen      14.00643)   ; lower bound on [14.00643;14.00728]
+        8  (element 'O  'oxygen        15.99903)   ; lower bound on [15.99903;15,99977]
+        9  (element 'F  'fluorine      18.998403163) ; dw=6
+        10 (element 'Ne 'neon          20.1797)    ; dw=6
+        11 (element 'Na 'sodium        22.98976928); dw=2
+        12 (element 'Mg 'magnesium     24.304)     ; lower bound on [24.304;23.307]
+        13 (element 'Al 'aluminum      26.9815385) ; dw=7
+        14 (element 'Si 'silicon       28.084)     ; lower bound on [28.084;28.086]
+        15 (element 'P  'phosphorous   30.973761998) ; dw=5
+        16 (element 'S  'sulphur       32.059)     ; lower bound on [32.059;32.076]
+        17 (element 'Cl 'chlorine      35.446)     ; lower bound on [35.446;35.457]
+        18 (element 'Ar 'argon         39.948)     ; dw=1
+        19 (element 'K  'potassium     39.0983)    ; dw=1
+        20 (element 'Ca 'calcium       40.078)     ; dw=4
+        21 (element 'Sc 'scandium      44.955908)  ; dw=5
+        22 (element 'Ti 'titanium      47.867)     ; dw=1
+        23 (element 'V  'vanadium      50.9415)    ; dw=1
+        24 (element 'Cr 'chromium      51.9961)    ; dw=6
+        25 (element 'Mn 'manganese     54.938044)  ; dw=3
+        26 (element 'Fe 'iron          55.845)     ; dw=2
+        27 (element 'Co 'cobalt        58.933194)  ; dw=4
+        28 (element 'Ni 'nickel        58.6934)    ; dw=4
+        29 (element 'Cu 'copper        63.546)     ; dw=3
+        30 (element 'Zn 'zinc          65.38)      ; dw=2
+        31 (element 'Ga 'gallium       69.723)     ; dw=1
+        32 (element 'Ge 'germanium     72.630)     ; dw=8
+        33 (element 'As 'arsenic       74.921595)  ; dw=6
+        34 (element 'Se 'selenium      78.971)     ; dw=8 
+        35 (element 'Br 'bromine       79.901)     ; lower bound on [79.901;79.907]
+        36 (element 'Kr 'krypton       83.798)     ; dw=2
+        37 (element 'Rb 'rubidium      85.4678)    ; dw=3
+        38 (element 'Sr 'strontium     87.62)      ; dw=1
+        39 (element 'Y  'yttrium       88.90584)   ; dw=2
+        40 (element 'Zr 'zirconium     91.224)     ; dw=2
+        41 (element 'Nb 'niobium       92.90637)   ; dw=2
+        42 (element 'Mo 'molybdenum    95.95)      ; dw=1
+        43 (element 'Tc 'technetium    97)         ; non-stable
+        44 (element 'Ru 'ruthenium    101.07)      ; dw=2
+        45 (element 'Rh 'rhodium      102.90550)   ; dw=2
+        46 (element 'Pd 'palladium    106.42)      ; dw=1
+        47 (element 'Ag 'silver       107.8682)    ; dw=2
+        48 (element 'Cd 'cadmium      112.414)     ; dw=4
+        49 (element 'In 'indium       114.818)     ; dw=1
+        50 (element 'Sn 'tin          118.710)     ; dw=7
+        51 (element 'Sb 'antimony     121.760)     ; dw=1
+        52 (element 'Te 'tellurium    127.60)      ; dw=3
+        53 (element 'I  'iodine       126.90447)   ; dw=3
+        54 (element 'Xe 'xenon        131.293)     ; dw=6
+        55 (element 'Cs 'cesium       132.90545196); dw=6
+        56 (element 'Ba 'barium       137.327)     ; dw=7       
+        57 (element 'La 'lanthan      138.90547)   ; dw=7
+        58 (element 'Ce 'cerium       140.116)     ; dw=1
+        59 (element 'Pr 'praseodymium 140.90766)   ; dw=2
+        60 (element 'Nd 'neodymium    144.22)      ; dw=3
+        61 (element 'Pm 'promethium   145)         ; non-stable
+        62 (element 'Sm 'samarium     150.36)      ; dw=2
+        63 (element 'Eu 'europium     151.964)     ; dw=1
+        64 (element 'Gd 'gadolinium   157.25)      ; dw=3
+        65 (element 'Tb 'terbium      158.92535)   ; dw=2
+        66 (element 'Dy 'dysprosium   162.500)     ; dw=1
+        67 (element 'Ho 'holmium      164.93033)   ; dw=2
+        68 (element 'Er 'erbium       167.259)     ; dw=3
+        69 (element 'Tm 'thulium      168.93422)   ; dw=2
+        70 (element 'Yb 'ytterbium    173.054)     ; dw=5
+        71 (element 'Lu 'luthetium    174.9668)    ; dw=1
+        72 (element 'Hf 'hafnium      178.49)      ; dw=2
+        73 (element 'Ta 'tantalum     180.94788)   ; dw=2
+        74 (element 'W  'wolfram      183.84)      ; dw=1
+        75 (element 'Re 'rhenium      186.207)     ; dw=1
+        76 (element 'Os 'osmium       190.23)      ; dw=3
+        77 (element 'Ir 'iridium      192.217)     ; dw=3
+        78 (element 'Pt 'platinum     195.084)     ; dw=9
+        79 (element 'Au 'gold         196.966569)  ; dw=5
+        80 (element 'Hg 'quicksilver  299.592)     ; dw=3
+        81 (element 'Tl 'thallium     204.382)     ; lower bound on [204.382;204.385]
+        82 (element 'Pb 'lead         207.2)       ; dw=1
+        83 (element 'Bi 'bismuth      208.98040)   ; dw=1
+        84 (element 'Po 'polonium     209)         ; non-stable
+        85 (element 'At 'astatine     210)         ; non-stable
+        86 (element 'Rn 'radon        222)         ; non-stable
+        87 (element 'Fr 'francium     223)         ; non-stable
+        88 (element 'Ra 'radium       226)         ; non-stable
+        89 (element 'Ac 'actinium     227)         ; non-stable
+        90 (element 'Th 'thorium      232.0377)    ; dw=4
+        91 (element 'Pa 'protactinium 231.03588)   ; dw=2
+        92 (element 'U  'uranium      238.02891)   ; dw=3
+        93 (element 'Np 'neptunium    237)         ; non-stable
+        94 (element 'Pu 'plutonium    244)         ; non-stable
+        95 (element 'Am 'americium    243)         ; non-stable
+        96 (element 'Cm 'curium       247)         ; non-stable
+        97 (element 'Bk 'berkelium    247)         ; non-stable
+        98 (element 'Cf 'californium  251)         ; non-stable
+        99 (element 'Es 'einsteinium  252)         ; non-stable
+        100 (element 'Fm 'fermium     257)         ; non-stable
+        101 (element 'Md 'mendelevium 258)         ; non-stable
+        102 (element 'No 'nobelium    259)         ; non-stable
+        103 (element 'Lr 'lawrencium  262)         ; non-stable
+        104 (element 'Rf 'rutherfordium 266)       ; non-stable
+        105 (element 'Db 'dubnium      268)        ; non-stable
+        106 (element 'Sg 'seaborgium   269)        ; non-stable
+        107 (element 'Bh 'bohrium      270)        ; non-stable
+        108 (element 'Hs 'hassium      277)        ; non-stable
+        109 (element 'Mt 'meitnerium   278)        ; non-stable
+        110 (element 'Ds 'darmstadtium 281)        ; non-stable
+        111 (element 'Rg 'roengtenium  282)        ; non-stable
+        112 (element 'Cn 'copernicium  285)        ; non-stable
+        113 (element 'Nh 'nihonium     286)        ; non-stable
+        114 (element 'Fl 'flerovium    289)        ; non-stable
+        115 (element 'Mc 'moscovium    290)        ; non-stable
+        116 (element 'Lv 'livermorium  293)        ; non-stable
+        117 (element 'Ts 'tennesine    294)        ; non-stable
+        118 (element 'Og 'oganneson    294)        ; non-stable
+        ))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        

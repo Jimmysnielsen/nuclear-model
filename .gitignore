@@ -1,0 +1,6 @@
+
+*.rkt~
+
+\._isotopes-table\.rkt
+
+*.bak
