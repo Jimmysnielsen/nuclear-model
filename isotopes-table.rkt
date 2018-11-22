@@ -24,27 +24,31 @@ example 100 'ms or 1e6 'a
 |#
 
 #|
-deay-mode is symbol
-symbol is one of
+decay-mode is '(symbol Number half-life)
+symbol1 is one of
 'stable  ; isotope is stable (P A) -> (P A)
 'alpha   ; alpha decay       (P A) -> (P-2 A-4)
 'p       ; proton decay      (P A) -> (P-1 A)
-'beta+   ; beta-minus decay  (P A) -> (P-1 A)
+'beta-   ; beta-minus decay  (P A) -> (P-1 A)
 'ec      ; electron capture  (P A) -> (P-1 A)
 'n       ; neutron decay     (P A) -> (P+1 A)
 'beta+   ; beta-plus decay   (P A) -> (P+1 A)
 'sf      ; spontaneous fission
 
+Number is natural occurence [0..100] %
+example '('H-1 99.9885 '('stable 0 0) '('s_abs .332)) ; halflife is irrelevant
+example '('H-3 0       '('beta- 12.312''a) '('s_abs 6.e-6))  ; beta- decay for H-3
 |#
 
-;!!!(struct isotope (symbol halflife cross-section decay-mode
+
+;!!!(struct isotope (symbol decay-modes cross-sections 
 
 (define *isotope*
   (hash '(0 1) '('neutron)
         ;H1 to H7
-        '(1 1) '('H-1)
-        '(1 2) '('H-2)
-        '(1 3) '('H-3)
+        '(1 1) '('H-1 '('stable 0 0) '('s_abs .332))
+        '(1 2) '('H-2 '('stable 0 0) '('s_abs .00051))
+        '(1 3) '('H-3 '('beta-  12-312 'a) '('s_abs 6.e-6))
         '(1 4) '('H-4)
         '(1 5) '('H-5)
         '(1 6) '('H-6)
